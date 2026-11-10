@@ -47,7 +47,7 @@ class DataProcessor:
 
         print(f"Файл '{csv_path}' не найден. Выполняется SQL-запрос к базе данных")
         engine = get_db_engine()
-        query = """
+        query = '''
         WITH set_config_precode AS (
           SELECT set_config('synchronize_seqscans', 'off', true)
         )
@@ -57,21 +57,26 @@ class DataProcessor:
             p.order_id,
             p.created_dt_msk AS order_dt,
             p.created_ts_msk AS order_ts,
-            p.service_name,
-            p.event_type_main,
             p.currency_code,
             p.revenue,
             p.tickets_count,
-            p.region_name,
-            p.city_name,
-            p.days_since_prev,
-            p.order_num
-        FROM afisha.purchases AS p
-        JOIN afisha.users AS u ON p.user_id = u.user_id
+            (p.created_dt_msk::date - LAG(p.created_dt_msk::date) OVER (
+                PARTITION BY p.user_id 
+                ORDER BY p.created_dt_msk
+            ))::int AS days_since_prev,
+            p.event_id,
+            p.service_name,
+            e.event_type_main,
+            r.region_name,
+            c.city_name
+        FROM afisha.purchases p
+        JOIN afisha.events e ON p.event_id = e.event_id
+        JOIN afisha.city c ON e.city_id = c.city_id
+        JOIN afisha.regions r ON c.region_id = r.region_id
         WHERE p.device_type_canonical IN ('mobile', 'desktop')
-          AND p.event_type_main != 'фильмы'
-        ORDER BY p.user_id, p.created_ts_msk;
-        """
+          AND e.event_type_main != 'фильм'
+        ORDER BY p.user_id ASC;
+        '''
         self.df_raw = pd.read_sql_query(query, con=engine)
         self.df_raw["order_dt"] = pd.to_datetime(self.df_raw["order_dt"])
         self.df_raw["order_ts"] = pd.to_datetime(self.df_raw["order_ts"])
@@ -248,7 +253,7 @@ class DataProcessor:
             df_p["total_orders"] >= 5,
         ]
         choices = ["1 заказ", "2 заказа", "от 3 до 4 заказов", "от 5 и выше"]
-        df_p["orders_segment"] = np.select(conditions, choices)
+        df_p["orders_segment"] = np.select(conditions, choices, default="другое")
 
         cols_seg = [
             "first_device", "first_event_type", "first_region",
