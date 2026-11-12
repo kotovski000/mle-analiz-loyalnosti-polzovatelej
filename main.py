@@ -66,8 +66,8 @@ def main():
     museum_ret = cat_retention.loc[cat_retention["first_event_type"] == "выставки", "retention_rate_%"].values[0]
     concert_share = cat_dist.loc[cat_dist["first_event_type"] == "концерты", "users_share_%"].values[0]
 
-    tree_rows = cat_retention.loc[cat_retention["first_event_type"].str.contains("ёлка|елка", case=False, na=False)]
-    tree_ret = tree_rows["retention_rate_%"].values[0] if not tree_rows.empty else 56.70
+    tree_rows = cat_retention.loc[cat_retention["first_event_type"].str.contains("ёлка|елка|елки|ёлки", case=False, na=False)]
+    tree_ret = tree_rows["retention_rate_%"].values[0] if not tree_rows.empty else "детские ёлки (категория отсутствует в выборке)"
 
     # Дни недели
     dow_df = processor.analyze_day_of_week()
@@ -84,7 +84,7 @@ def main():
    - Базовый уровень Retention: {base_ret:.2f}% совершают повторные заказы; 75% оформляют не более {int(orders_p75)} заказов.
    - Театр ({theater_ret:.1f}%) и выставки ({museum_ret:.1f}%) — наиболее надежные точки входа с максимальным удержанием.
    - Концерты приводят {concert_share:.1f}% всех новых клиентов и служат главным каналом масштабирования.
-   - Спорт ({sport_ret:.1f}%) и детские ёлки ({tree_ret:.1f}%) показывают наименьший процент повторных покупок.
+   - Спорт ({sport_ret:.1f}%) и детские ёлки ({tree_ret}%) показывают наименьший процент повторных покупок.
    - День недели первой покупки практически не связан с возвратом (разброс всего {dow_min:.1f}% - {dow_max:.1f}%).
    - Главный фактор, ассоциированный с числом заказов — средний чек (phi_k = {phi_revenue:.3f}).
 
