@@ -10,7 +10,7 @@ def get_db_engine():
     """ Подключение к базе данных PostgreSQL на основе переменных окружения из .env."""
     load_dotenv()
     user = os.getenv("DB_USER")
-    pwd = os.getenv("DB_PASSWORD")
+    pwd = os.getenv("DB_PWD")
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
     db = os.getenv("DB_NAME")
